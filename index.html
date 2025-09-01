@@ -129,7 +129,8 @@
 </head>
 <body>
     <div id="game-container">
-        <img src="https://placehold.co/150x150/a17a42/ffffff?text=Celtic+Knot" alt="A golden Celtic knot design." class="header-graphic">
+        <!-- The image is now referenced by its ID and set in JavaScript -->
+        <img id="header-graphic" alt="A golden Celtic knot design." class="header-graphic">
         <h1>Y Deuddeg Brwydr Arthwr (The Twelve Battles of Arthwr)</h1>
         <div id="hp-display">Iechyd (Health): <span id="hp-value"></span></div>
         <div id="hp-bar-container"><div id="hp-bar"></div></div>
@@ -143,6 +144,12 @@
         let buttonContainerElement = document.getElementById('button-container');
         let hpDisplayElement = document.getElementById('hp-value');
         let hpBarElement = document.getElementById('hp-bar');
+        const headerGraphicElement = document.getElementById('header-graphic');
+
+        // This object now stores the image path
+        const images = {
+            celticKnot: 'celtic knot.jpeg'
+        };
 
         const player = {
             hp: 100
@@ -400,6 +407,7 @@
         // This function starts the game when the page loads.
         function startGame() {
             player.hp = 100;
+            headerGraphicElement.src = images.celticKnot; // Set the image source here
             updateDisplay(gameStates['start'].text, gameStates['start'].choices);
         }
 
