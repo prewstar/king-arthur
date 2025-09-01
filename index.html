@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y Deuddeg Brwydr Arthwr</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+
+        :root {
+            --primary-color: #a17a42; /* Muted Gold/Bronze */
+            --secondary-color: #f7f0e6; /* Cream/Light Tan */
+            --background-color: #264639; /* Deep Forest Green */
+            --button-bg: #4c7f66; /* Muted Green */
+            --button-hover: #649c81; /* Lighter Green */
+            --hp-bar-color: #c44d4d; /* Red for HP */
+            --hp-bar-bg: #f7f0e6;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background-color: var(--background-color);
+            color: var(--secondary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            background-image: linear-gradient(rgba(38, 70, 57, 0.7), rgba(38, 70, 57, 0.7)), url('https://placehold.co/1920x1080/2a4b3d/ffffff?text=Celtic+Forest');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .header-graphic {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
+
+        #hp-display {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        #hp-bar-container {
+            width: 100%;
+            background-color: var(--hp-bar-bg);
+            border-radius: 25px;
+            margin: 1rem 0;
+            overflow: hidden;
+            border: 2px solid var(--primary-color);
+        }
+
+        #hp-bar {
+            height: 25px;
+            background-color: var(--hp-bar-color);
+            width: 100%;
+            transition: width 0.5s ease-in-out;
+        }
+
+        #story-text {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(247, 224, 196, 0.3);
+            text-align: left;
+        }
+
+        #button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .choice-button {
+            background-color: var(--button-bg);
+            color: var(--secondary-color);
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .choice-button:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .choice-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <img src="https://placehold.co/150x150/a17a42/ffffff?text=Celtic+Knot" alt="A golden Celtic knot design." class="header-graphic">
+        <h1>Y Deuddeg Brwydr Arthwr (The Twelve Battles of Arthwr)</h1>
+        <div id="hp-display">Iechyd (Health): <span id="hp-value"></span></div>
+        <div id="hp-bar-container"><div id="hp-bar"></div></div>
+        <div id="story-text"></div>
+        <div id="button-container"></div>
+    </div>
+
+    <script>
+        // Game State Variables
+        let storyTextElement = document.getElementById('story-text');
+        let buttonContainerElement = document.getElementById('button-container');
+        let hpDisplayElement = document.getElementById('hp-value');
+        let hpBarElement = document.getElementById('hp-bar');
+
+        const player = {
+            hp: 100
+        };
+
+        const gameStates = {
+            'start': {
+                text: "Ti Arthwr, Brenin y Brythoniaid. Mae'r Saksoniaid yn ymosod ar dy deyrnas, ac mae'n rhaid i ti arwain dy bobl mewn brwydr. Mae dy daith yn cychwyn ar Afon Glein.<br><br>You are Arthwr, King of the Britons. The Saxons are invading your kingdom, and you must lead your people in battle. Your journey begins at the River Glein.",
+                choices: [
+                    { text: 'Dechrau ym Mrwydr Afon Glein (Start the Battle of the River Glein)', nextState: 'glein' },
+                ]
+            },
+            'glein': {
+                text: "Ym Mrwydr Afon Glein, rydych chi'n wynebu milwyr o'r gogledd. Mae eu rhifau'n fawr. Mae'n rhaid i ti gychwyn ar yr ymosodiad. Pa dacteg fyddi di'n ei ddefnyddio?<br><br>In the Battle of the River Glein, you face soldiers from the north. Their numbers are great. You must begin the attack. What tactic will you use?",
+                choices: [
+                    { text: "Rhoddaf ambusg (Set an ambush)", action: 'roll', currentBattleState: 'glein', successState: 'glein_victory', failureState: 'glein_defeat', rollModifier: 2 },
+                    { text: "Ymosod ar hyd yr afon (Attack along the river)", action: 'roll', currentBattleState: 'glein', successState: 'glein_victory', failureState: 'glein_defeat', rollModifier: 1 },
+                    { text: "Ymosod yn uniongyrchol (Attack directly)", action: 'roll', currentBattleState: 'glein', successState: 'glein_victory', failureState: 'glein_defeat', rollModifier: -1 }
+                ],
+                successText: "Mae eich byddin yn rhagori, ac rydych chi'n ennill y frwydr heb golli gormod o ddynion. Mae'r fuddugoliaeth yn rhoi cychwyn cadarn i'ch ymgyrch.<br><br>Your army excels, and you win the battle without too many casualties. The victory provides a strong start to your campaign.",
+                failureText: "Mae'r frwydr yn anodd, ac rydych chi'n dioddef colledion trwm. Mae Arthwr yn cael ei anafu yn y frwydr, ac rydych chi'n colli 20 o iechyd.<br><br>The battle is difficult, and you suffer heavy losses. Arthwr is wounded in the battle, and you lose 20 health.",
+                damage: 20
+            },
+            'glein_victory': {
+                text: "Rydych chi wedi ennill! Y frwydr nesaf sy'n aros. Lle rydych chi'n mynd nesaf?<br><br>You have won! The next battle awaits. Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Cat Coit Celidon (Move on to the Battle of Cat Coit Celidon)", nextState: 'catcoit' },
+                    { text: "Symud ymlaen i Afon Dubglas (Move on to the River Dubglas)", nextState: 'dubglas' }
+                ]
+            },
+            'glein_defeat': {
+                text: "Er gwaethaf yr anaf, mae'n rhaid i chi benderfynu ar eich cam nesaf. Lle rydych chi'n mynd nesaf?<br><br>Despite the injury, you must decide your next step. Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Cat Coit Celidon (Move on to the Battle of Cat Coit Celidon)", nextState: 'catcoit' },
+                    { text: "Symud ymlaen i Afon Dubglas (Move on to the River Dubglas)", nextState: 'dubglas' }
+                ]
+            },
+            'dubglas': {
+                text: "Rydych chi'n cyrraedd Afon Dubglas, tir y Pictiaid, lle mae'r gelyn yn aros. Maent yn llu mawr, ac mae'r frwydr yn addo bod yn un anodd. Pa dacteg fyddi di'n ei ddefnyddio?<br><br>You arrive at the River Dubglas, land of the Picts, where the enemy awaits. They are a great host, and the battle promises to be a difficult one. What tactic will you use?",
+                choices: [
+                    { text: "Ymosod o'r tu ôl (Attack from behind)", action: 'roll', currentBattleState: 'dubglas', successState: 'dubglas_victory', failureState: 'dubglas_defeat', rollModifier: 3 },
+                    { text: "Defnyddio ymosodiad uniongyrchol (Use a direct attack)", action: 'roll', currentBattleState: 'dubglas', successState: 'dubglas_victory', failureState: 'dubglas_defeat', rollModifier: -2 },
+                    { text: "Aros yn y coed (Wait in the woods)", action: 'roll', currentBattleState: 'dubglas', successState: 'dubglas_victory', failureState: 'dubglas_defeat', rollModifier: -1 }
+                ],
+                successText: "Rydych chi'n trechu'r gelyn, ac mae llawer ohonynt yn ffoi. Mae'r fuddugoliaeth yn dangos eich grym. Ble rydych chi'n mynd nesaf?<br><br>You defeat the enemy, and many of them flee. The victory demonstrates your power. Where do you go next?",
+                failureText: "Nid yw'r amgylchedd yn gyfarwydd, ac mae'r gelyn yn manteisio arno. Rydych chi'n colli 20 o iechyd.<br><br>The unfamiliar surroundings give the enemy an advantage. You lose 20 health.",
+                damage: 20
+            },
+            'dubglas_victory': {
+                text: "Ble rydych chi'n mynd nesaf?<br><br>Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Cat Coit Celidon (Move on to the Battle of Cat Coit Celidon)", nextState: 'catcoit' },
+                    { text: "Symud ymlaen i'r drydedd frwydr ym Mynydd Llwyn (Move on to the third battle at Mount Llwyn)", nextState: 'breguion' }
+                ]
+            },
+            'dubglas_defeat': {
+                text: "Er gwaethaf yr anaf, mae'n rhaid i chi benderfynu ar eich cam nesaf. Lle rydych chi'n mynd nesaf?<br><br>Despite the injury, you must decide your next step. Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Cat Coit Celidon (Move on to the Battle of Cat Coit Celidon)", nextState: 'catcoit' },
+                    { text: "Symud ymlaen i'r drydedd frwydr ym Mynydd Llwyn (Move on to the third battle at Mount Llwyn)", nextState: 'breguion' }
+                ]
+            },
+            'catcoit': {
+                text: "Ar ôl taith hir, rydych chi'n cyrraedd Cat Coit Celidon, coetir dwys lle mae'r gelyn yn llechu. Mae'n rhaid i chi benderfynu ar dacteg. Pa mor dda wnei di'n erbyn y gelyn yn y coed?<br><br>After a long journey, you arrive at Cat Coit Celidon, a dense forest where the enemy is lurking. You must decide on a tactic. How well will you do against the enemy in the woods?",
+                choices: [
+                    { text: "Defnyddio'r coed fel lloches (Use the woods as cover)", action: 'roll', currentBattleState: 'catcoit', successState: 'catcoit_victory', failureState: 'catcoit_defeat', rollModifier: 2 },
+                    { text: "Gweithio ar hyd yr afon (Work along the river)", action: 'roll', currentBattleState: 'catcoit', successState: 'catcoit_victory', failureState: 'catcoit_defeat', rollModifier: -1 },
+                    { text: "Ymosod ar unwaith (Attack at once)", action: 'roll', currentBattleState: 'catcoit', successState: 'catcoit_victory', failureState: 'catcoit_defeat', rollModifier: -2 }
+                ],
+                successText: "Mae'ch sgiliau brwydro yn y coed yn rhagori, ac rydych chi'n gwasgaru'r gelyn. Rydych chi'n diogelu'r coetiroedd ac yn profi'ch gallu.<br><br>Your woodland combat skills excel, and you scatter the enemy. You secure the woodlands and prove your ability.",
+                failureText: "Mae'r gelyn yn defnyddio'r coetir er mantais iddynt, ac rydych chi'n cael eich hun mewn amgylchedd peryglus. Rydych chi'n colli 20 o iechyd.<br><br>The enemy uses the woodland to their advantage, and you find yourself in a dangerous environment. You lose 20 health.",
+                damage: 20
+            },
+            'catcoit_victory': {
+                text: "Lle rydych chi'n mynd nesaf?<br><br>Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Breguion (Move on to the Battle of Breguion)", nextState: 'breguion' },
+                    { text: "Symud ymlaen i'r frwydr yn Urbs Legionis (Move on to the battle in Urbs Legionis)", nextState: 'urbs' }
+                ]
+            },
+            'catcoit_defeat': {
+                text: "Er gwaethaf yr anaf, mae'n rhaid i chi benderfynu ar eich cam nesaf. Lle rydych chi'n mynd nesaf?<br><br>Despite the injury, you must decide your next step. Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Breguion (Move on to the Battle of Breguion)", nextState: 'breguion' },
+                    { text: "Symud ymlaen i'r frwydr yn Urbs Legionis (Move on to the battle in Urbs Legionis)", nextState: 'urbs' }
+                ]
+            },
+            'urbs': {
+                text: "Yn Urbs Legionis, hen ddinas Rufeinig, mae'r gelyn yn ymosod ar y muriau. Mae'r frwydr hon am enwogrwydd eich enw a'ch teyrnas. Sut fyddi di'n ymladd?<br><br>At Urbs Legionis, an old Roman city, the enemy is attacking the walls. This battle is for the fame of your name and your kingdom. How will you fight?",
+                choices: [
+                    { text: "Ymosod o'r dŵr (Attack from the water)", action: 'roll', currentBattleState: 'urbs', successState: 'urbs_victory', failureState: 'urbs_defeat', rollModifier: 3 },
+                    { text: "Ymosod ar y porth (Attack the gate)", action: 'roll', currentBattleState: 'urbs', successState: 'urbs_victory', failureState: 'urbs_defeat', rollModifier: -2 },
+                    { text: "Defnyddio peiriannau (Use siege engines)", action: 'roll', currentBattleState: 'urbs', successState: 'urbs_victory', failureState: 'urbs_defeat', rollModifier: 1 }
+                ],
+                successText: "Mae eich strategaeth yn ddi-ffael, a rydych chi'n amddiffyn y ddinas yn llwyddiannus. Mae'r fuddugoliaeth hon yn dangos eich pŵer i bawb.<br><br>Your strategy is flawless, and you successfully defend the city. This victory shows your power to all.",
+                failureText: "Mae'r gelyn yn dod o hyd i ffordd i dorri trwodd. Rydych chi'n dioddef colledion trwm ac yn colli 30 o iechyd.<br><br>The enemy finds a way to break through. You suffer heavy losses and lose 30 health.",
+                damage: 30
+            },
+            'urbs_victory': {
+                text: "Lle rydych chi'n mynd nesaf?<br><br>Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Breguion (Move on to the Battle of Breguion)", nextState: 'breguion' },
+                    { text: "Symud ymlaen i'r frwydr yn Mynydd Badon (Move on to the battle in Mount Badon)", nextState: 'badon' }
+                ]
+            },
+            'urbs_defeat': {
+                text: "Er gwaethaf yr anaf, mae'n rhaid i chi benderfynu ar eich cam nesaf. Lle rydych chi'n mynd nesaf?<br><br>Despite the injury, you must decide your next step. Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Breguion (Move on to the Battle of Breguion)", nextState: 'breguion' },
+                    { text: "Symud ymlaen i'r frwydr yn Mynydd Badon (Move on to the Battle of Mount Badon)", nextState: 'badon' }
+                ]
+            },
+            'breguion': {
+                text: "Rydych chi'n dychwelyd i ddiogelu gwersyll Breguion. Mae'r Saksoniaid yn ymosod ar y gaer, ac mae'n rhaid i chi amddiffyn y bobl. Pa dacteg fyddi di'n ei ddefnyddio?<br><br>You return to secure the Breguion camp. The Saxons are attacking the fortress, and you must defend the people. What tactic will you use?",
+                choices: [
+                    { text: "Amddiffyn y muriau (Defend the walls)", action: 'roll', currentBattleState: 'breguion', successState: 'breguion_victory', failureState: 'breguion_defeat', rollModifier: 2 },
+                    { text: "Ymosod ar y maes agored (Attack on the open field)", action: 'roll', currentBattleState: 'breguion', successState: 'breguion_victory', failureState: 'breguion_defeat', rollModifier: -1 },
+                    { text: "Aros mewn lloches (Wait in cover)", action: 'roll', currentBattleState: 'breguion', successState: 'breguion_victory', failureState: 'breguion_defeat', rollModifier: 1 }
+                ],
+                successText: "Mae'ch amddiffynfa yn gwbl ddi-ffael, a rydych chi'n trechu'r Saksoniaid yn hawdd. Mae'n llwyddiant i chi, gan brofi'ch doethineb fel arweinydd.<br><br>Your defense is flawless, and you easily defeat the Saxons. It is a triumph for you, proving your wisdom as a leader.",
+                failureText: "Mae'r amddiffynfa'n methu, ac mae'r gelyn yn torri trwodd. Mae Arthwr yn cael ei anafu eto, ac rydych chi'n colli 20 o iechyd.<br><br>The defense fails, and the enemy breaks through. Arthwr is wounded again, and you lose 20 health.",
+                damage: 20
+            },
+            'breguion_victory': {
+                text: "Lle rydych chi'n mynd nesaf?<br><br>Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Guenion (Move on to the Battle of Guenion)", nextState: 'guenion' },
+                    { text: "Symud ymlaen i Frwydr Mynydd Badon (Move on to the Battle of Mount Badon)", nextState: 'badon' }
+                ]
+            },
+            'breguion_defeat': {
+                text: "Er gwaethaf yr anaf, mae'n rhaid i chi benderfynu ar eich cam nesaf. Lle rydych chi'n mynd nesaf?<br><br>Despite the injury, you must decide your next step. Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Glyn Guenion (Move on to the Battle of Guenion)", nextState: 'guenion' },
+                    { text: "Symud ymlaen i Frwydr Mynydd Badon (Move on to the Battle of Mount Badon)", nextState: 'badon' }
+                ]
+            },
+            'guenion': {
+                text: "Yn Ngastell Guenion, mae'r gelyn yn gryf ac mae'r frwydr yn enbyd. Y frwydr hon fydd yn penderfynu pwy sy'n rheoli'r tir. Sut fyddi di'n perfformio?<br><br>At Guenion Castle, the enemy is strong and the battle is dire. This battle will determine who controls the land. How will you perform?",
+                choices: [
+                    { text: "Ymosod ar y porth (Attack the gate)", action: 'roll', currentBattleState: 'guenion', successState: 'guenion_victory', failureState: 'guenion_defeat', rollModifier: -2 },
+                    { text: "Ymosod ar y muriau (Attack the walls)", action: 'roll', currentBattleState: 'guenion', successState: 'guenion_victory', failureState: 'guenion_defeat', rollModifier: 2 },
+                    { text: "Defnyddio llwybr dirgel (Use a secret passage)", action: 'roll', currentBattleState: 'guenion', successState: 'guenion_victory', failureState: 'guenion_defeat', rollModifier: 3 }
+                ],
+                successText: "Mae eich arweinyddiaeth yn ysbrydoli'r milwyr i fuddugoliaeth. Rydych chi'n diogelu'r gaer.<br><br>Your leadership inspires the soldiers to victory. You secure the fortress.",
+                failureText: "Mae'r gelyn yn peri llawer o drafferth i chi. Mae Arthwr yn cael ei anafu'n ddifrifol, ac rydych chi'n colli 30 o iechyd.<br><br>The enemy causes a lot of trouble for you. Arthwr is severely wounded, and you lose 30 health.",
+                damage: 30
+            },
+            'guenion_victory': {
+                text: "Y frwydr olaf yn Mynydd Badon sy'n aros.<br><br>The final battle at Mount Badon awaits.",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Mynydd Badon (Move on to the Battle of Mount Badon)", nextState: 'badon' }
+                ]
+            },
+            'guenion_defeat': {
+                text: "Er gwaethaf yr anaf, mae'n rhaid i chi benderfynu ar eich cam nesaf. Lle rydych chi'n mynd nesaf?<br><br>Despite the injury, you must decide your next step. Where do you go next?",
+                choices: [
+                    { text: "Symud ymlaen i Frwydr Mynydd Badon (Move on to the Battle of Mount Badon)", nextState: 'badon' }
+                ]
+            },
+            'badon': {
+                text: "Ym Mrwydr Mynydd Badon, rydych chi'n gwisgo symbol y Forwyn Fair ar eich ysgwydd ac yn arwain brwydr olaf am ddyddiau. Bydd dy dynged yn cael ei penderfynu nawr. Pa dacteg fyddi di'n ei defnyddio?<br><br>At the Battle of Mount Badon, you wear the symbol of the Virgin Mary on your shoulder and lead a final battle for days. Your fate will be decided now. What tactic will you use?",
+                choices: [
+                    { text: "Ymosod yn ffyrnig (Attack fiercely)", action: 'roll', currentBattleState: 'badon', successState: 'endGame', failureState: 'gameOver', rollModifier: 1 },
+                    { text: "Amddiffyn y bryn (Defend the hill)", action: 'roll', currentBattleState: 'badon', successState: 'endGame', failureState: 'gameOver', rollModifier: 2 },
+                    { text: "Ymosod ar y nos (Attack at night)", action: 'roll', currentBattleState: 'badon', successState: 'endGame', failureState: 'gameOver', rollModifier: 3 }
+                ],
+                successText: "Mae'r fuddugoliaeth yn enfawr! Rydych chi wedi achub eich teyrnas ac wedi diogelu'r dyfodol am byth.<br><br>The victory is immense! You have saved your kingdom and secured the future for all time.",
+                failureText: "Er gwaethaf eich ymdrechion, rydych chi'n cael eich trechu'n enbyd. Mae Arthwr yn marw yn y frwydr, ac mae'r deyrnas yn disgyn. Rydych chi'n colli 100 o iechyd.<br><br>Despite your efforts, you are terribly defeated. Arthwr dies in the battle, and the kingdom falls. You lose 100 health.",
+                damage: 100
+            },
+            'endGame': {
+                text: "Y daith a orffennodd. Diolch am chwarae.<br><br>The journey has ended. Thank you for playing.",
+                choices: [
+                    { text: 'Dechrau drosodd (Start Over)', nextState: 'start' }
+                ]
+            },
+            'gameOver': {
+                text: "Mae'ch iechyd wedi cyrraedd 0. Mae Arthwr wedi'i drechu, ac mae'r Saksoniaid wedi cymryd rheolaeth. Mae'r gêm drosodd.<br><br>Your health has reached 0. Arthwr has been defeated, and the Saxons have taken control. Game over.",
+                choices: [
+                    { text: 'Dechrau drosodd (Start Over)', nextState: 'start' }
+                ]
+            }
+        };
+
+        // This function updates the HP display.
+        function updateHPDisplay() {
+            hpDisplayElement.textContent = player.hp;
+            const hpPercentage = (player.hp / 100) * 100;
+            hpBarElement.style.width = `${Math.max(0, hpPercentage)}%`;
+        }
+
+        // This function updates the text and buttons on the screen.
+        function updateDisplay(text, choices) {
+            storyTextElement.innerHTML = text;
+            buttonContainerElement.innerHTML = '';
+            choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.innerHTML = choice.text;
+                button.classList.add('choice-button');
+                button.addEventListener('click', () => handleChoice(choice));
+                buttonContainerElement.appendChild(button);
+            });
+            updateHPDisplay();
+        }
+
+        // This function handles the logic for what happens when a button is clicked.
+        function handleChoice(choice) {
+            const { nextState, action, currentBattleState, successState, failureState, rollModifier } = choice;
+            const state = gameStates[nextState || currentBattleState];
+
+            if (action === 'roll') {
+                if (!state) {
+                    console.error("Error: State is undefined for currentBattleState:", currentBattleState);
+                    return;
+                }
+                
+                const baseRoll = Math.floor(Math.random() * 6) + 1;
+                const finalRoll = baseRoll + (rollModifier || 0);
+
+                let newText;
+                let nextSceneStateName;
+
+                if (finalRoll >= 4) {
+                    newText = `${state.successText}<br><br>You chose a tactic that gave you a bonus of ${rollModifier}. Your die roll was ${baseRoll}, giving you a final score of ${finalRoll}.`;
+                    nextSceneStateName = successState;
+                } else {
+                    player.hp -= state.damage;
+                    newText = `${state.failureText}<br><br>You chose a tactic that gave you a modifier of ${rollModifier}. Your die roll was ${baseRoll}, giving you a final score of ${finalRoll}.`;
+                    nextSceneStateName = failureState;
+                }
+                
+                if (player.hp <= 0) {
+                    updateDisplay(gameStates['gameOver'].text, gameStates['gameOver'].choices);
+                } else {
+                    const nextSceneState = gameStates[nextSceneStateName];
+                    if (nextSceneState) {
+                        updateDisplay(newText, nextSceneState.choices);
+                    } else {
+                        console.error("Error: Next scene state is undefined:", nextSceneStateName);
+                    }
+                }
+            } else {
+                if (state) {
+                    if (nextState === 'start') {
+                        player.hp = 100;
+                    }
+                    updateDisplay(state.text, state.choices);
+                } else {
+                    console.error("Error: State is undefined for regular choice:", nextState);
+                }
+            }
+        }
+
+        // This function starts the game when the page loads.
+        function startGame() {
+            player.hp = 100;
+            updateDisplay(gameStates['start'].text, gameStates['start'].choices);
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
